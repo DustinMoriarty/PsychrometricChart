@@ -14,14 +14,12 @@ SaturationPressure <- function(T){
 	C12 = -1.4452093e-8
 	C13 = 6.5459673
 
-	if (T>=173.15 & T < 273.15) {
-	p = exp(C1/T + C2 + C3*T + C4*T^2 + C5*T^3 + C6*T^4 + C7 * log(T))
-	} else if (T>= 273.15 && T< 473.15) {
-	p = exp(C8/T+C9+C10*T+C11*T^2+C12*T^3+C13*log(T))
-	} else {
-	## Print Error 
-	p = NA
-	message("Temperature out of Range")}
+	p <- 	ifelse(T>=173.15 & T < 273.15,
+		exp(C1/T + C2 + C3*T + C4*T^2 + C5*T^3 + C6*T^4 + C7 * log(T)),
+	ifelse(T>= 273.15 && T< 473.15,
+		exp(C8/T+C9+C10*T+C11*T^2+C12*T^3+C13*log(T)),
+	NA))
+
 
 return(p)
 }
