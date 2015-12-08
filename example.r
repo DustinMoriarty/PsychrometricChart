@@ -1,3 +1,8 @@
+#TITLE: MAS                              # 
+#AUTHOR:                                 #  
+#DATE: December 8, 2015                  # 
+##########################################
+
 source("MAS.r")
 
 patm = 101.1e3 #Pa

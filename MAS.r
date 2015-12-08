@@ -1,7 +1,13 @@
+#TITLE: MAS                              # 
+#AUTHOR:                                 #  
+#DATE: December 8, 2015                  # 
+##########################################
+#Class MAS calculates and stores moist air state data given three input variables.
+
 #Variables:
-#T_d           %Dry Bulb Temperature (K)
-#t_d           #Dry Bulb Temperature (deg C)
-#T_w         Wet Bulb Temperature eK
+#T_d         Dry Bulb Temperature (K)
+#t_d         Dry Bulb Temperature (deg C)
+#T_w         Wet Bulb Temperature (K)
 #t_w         Wet Bulb Temperature (deg C)
 #p           abosolute pressure
 #p_da        Vapor Pressure (Pa)
@@ -13,14 +19,19 @@
 #phi         Relative Humidity
 #h           Enthalpy
 #description description
-#v           Specific Volume e^3/k
+#v           Specific Volume m^3/kg
 
 #Load Dependencies
 source("saturationpressure.r")
 
 
 #Constructor Function for MAS  
-mas <- function(t_d,t_w,p){
+mas <- function(arg1,arg2,arg3,mode=1,units="SI"){
+
+##<<<TO DO>>> Implement Unit Conversions
+#Temporarty Statements for development remove after units are implemented
+if(units!="SI") print("units currently not supported")
+
 
 #Initiate Variables
 	R = 8314.472; #J/mol/K
@@ -41,6 +52,13 @@ mas <- function(t_d,t_w,p){
 		description = "description", 
 		v = 1)
 
+# Switch between modes depending on input variables
+switch(mode,
+#Mode 1:t_d, t_w, p
+{
+t_d <- arg1
+t_w <- arg2
+p <- arg3
 #Calculate State Variables
 	x$t_d = t_d
 	x$t_w = t_w
@@ -58,10 +76,19 @@ mas <- function(t_d,t_w,p){
 	x$gamma = x$W/(1+x$W) #Specific Humidity
 	x$phi = x$p_w/x$p_da  #Relative Humidity
 	x$h = 1.006*x$t_d+x$W*(2501+1.86*x$t_d) #Enthalpy
-	x$v = R*x$T_d*(1+1.607858*x$W)/28.966/x$p #Specific Volume	
+	x$v = R*x$T_d*(1+1.607858*x$W)/28.966/x$p} #Specific Volume	
+
+,
+#Mode 2: t, t_d and p
+#<<<TO DO>>>: Implement ASHRAE Fundamentals Handbook 2009 Chapter 1 Situation 2
+message("mode not yet supported")
+,
+#Mode 3: t, phi and p
+#<<<TO DO>>>: Implement ASHRAE Fundamentals Handbook 2009 Chapter 1 Situation 3 
+message("mode not yet supported")
+)
+
 class(x) <- "mas"
-
-
 return(x)
 }
 
