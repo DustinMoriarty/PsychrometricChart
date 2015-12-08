@@ -29,7 +29,8 @@ source("saturationpressure.r")
 mas <- function(arg1,arg2,arg3,mode=1,units="SI"){
 
 ##<<<TO DO>>> Implement Unit Conversions
-#Temporarty Statements for development remove after units are implemented
+#Temporarty Statements for development.
+#Remove after IM  units are implemented
 if(units!="SI") print("units currently not supported")
 
 
@@ -52,7 +53,8 @@ if(units!="SI") print("units currently not supported")
 		description = "description", 
 		v = 1)
 
-# Switch between modes depending on input variables
+# Switch between modes depending on input argument mode, mode determines the variables reprented
+# by the input argments arg1, arg2 and arg3
 switch(mode,
 #Mode 1:t_d, t_w, p
 {
