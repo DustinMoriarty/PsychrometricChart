@@ -1,13 +1,16 @@
-# PsychrometricChart
-
-This is an R implementation of a web based interactive psychrometric chart. 
-This application is currently under development. 
-
+Package: masr
+Type: Package
+Title: Moist Air State R
+Version: 0.1
+Date: 2015-12-08
+Author: Dustin B. Moriarty
+Maintainer: Dustin B. Moriarty <dustin.briles.moriarty@gmail.com>
+Description: This is an R implementation of a web based interactive 
+psychrometric chart. This package is currently under development. 
 The class mas is used to store psychrometric states of moist air. All states 
 can be calculated upon creation of a mas object using three variables
 In addition, function are provided for calculations of specific state 
 variables.
-
 This package can be used for calculations of state variable information 
 or to draw psychrometric charts.
-
+License: GPL
