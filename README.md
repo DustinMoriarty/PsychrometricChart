@@ -1,5 +1,13 @@
 # PsychrometricChart
 
-This is an R implementation of a web based interactive psychrometric chart. This application is currently under development. 
+This is an R implementation of a web based interactive psychrometric chart. 
+This application is currently under development. 
 
-the class mas(t_d,t_m,p) is used to save psychrometric states of moist air.
+The class mas is used to store psychrometric states of moist air. All states 
+can be calculated upon creation of a mas object using three variables
+In addition, function are provided for calculations of specific state 
+variables.
+
+This package can be used for calculations of state variable information 
+or to draw psychrometric charts.
+
