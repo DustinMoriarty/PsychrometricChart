@@ -28,10 +28,13 @@ source("saturationpressure.r")
 #Constructor Function for MAS  
 mas <- function(arg1,arg2,arg3,mode=1,units="SI"){
 
-##<<<TO DO>>> Implement Unit Conversions
-#Temporarty Statements for development.
-#Remove after IM  units are implemented
-if(units!="SI") print("units currently not supported")
+if(units=="IM"){
+    ##<<To Do>> add unit conversion
+    stop("Imperial units not yet supported.")
+    }
+    else if(units!="SI")
+	stop("Invalid value for units.")
+	}
 
 
 #Initiate Variables
