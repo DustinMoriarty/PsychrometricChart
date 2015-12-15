@@ -23,6 +23,7 @@
 
 #Load Dependencies
 source("saturationpressure.r")
+source("humidityratio.r")
 
 
 #Constructor Function for MAS  
@@ -32,7 +33,7 @@ if(units=="IM"){
     ##<<To Do>> add unit conversion
     stop("Imperial units not yet supported.")
     }
-    else if(units!="SI")
+    else if(units!="SI"){
 	stop("Invalid value for units.")
 	}
 

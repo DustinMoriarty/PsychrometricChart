@@ -15,9 +15,9 @@ SaturationPressure <- function(T){
 	C13 = 6.5459673
 
 	p <- 	ifelse(T>=173.15 & T < 273.15,
-		exp(C1/T + C2 + C3*T + C4*T^2 + C5*T^3 + C6*T^4 + C7 * log(T)),
+	    exp(C1/T + C2 + C3*T + C4*T^2 + C5*T^3 + C6*T^4 + C7 * log(T)),
 	ifelse(T>= 273.15 && T< 473.15,
-		exp(C8/T+C9+C10*T+C11*T^2+C12*T^3+C13*log(T)),
+	    exp(C8/T+C9+C10*T+C11*T^2+C12*T^3+C13*log(T)),
 	NA))
 
 
