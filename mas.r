@@ -12,7 +12,8 @@
 #p           abosolute pressure
 #p_da        Vapor Pressure (Pa)
 #p_ws        wet bulb pressure at saturation
-#W_ws        Humidity Ratio at Saturation
+#W_ws        Humidity Ratio at Saturation Using Wet Bulb Temperature
+#W_s         Humidity Ratio at Saturation Using Dry Bulb Temperature
 #W           Humidity Ratio
 #p_w         Partial Pressure of Water Vapor In Moist Air
 #gamma       Specific Humidity       
@@ -24,6 +25,7 @@
 #Load Dependencies
 source("saturationpressure.r")
 source("humidityratio.r")
+source("dewpoint.r")
 
 
 #Constructor Function for MAS  
@@ -49,6 +51,7 @@ if(units=="IM"){
 		p_da = 1,       
 		p_ws = 1,       
 		W_ws = 1,       
+		W_s = 1,
 		W = 1,          
 		p_w = 1,        
 		gamma = 1,       
@@ -78,6 +81,7 @@ p <- arg3
 	x$W <-ifelse(x$t_d<0, 
 		((2830 - 0.24*x$t_w)*x$W_ws -1.006*(x$t_d-x$t_w))/(2830 + 1.86*x$t_d-2.1*x$t_w), 
 		((2501 -2.326*x$t_w)*x$W_ws - 1.006*(x$t_d-x$t_w))/(2501+1.86*x$t_d-4.186*x$t_w))
+	x$W_s <- 0.621945*x$p_da/(x$p-x$p_da)
 	x$p_w = x$p*x$W/(0.621945 + x$W) #Partial Pressure of Water Vapor
 	x$gamma = x$W/(1+x$W) #Specific Humidity
 	x$phi = x$p_w/x$p_da  #Relative Humidity
