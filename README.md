@@ -11,7 +11,7 @@ variables.
 This package can be used for calculations of state variable information 
 or to draw psychrometric charts.
 
-Open an R console in this directory and run the folling command to see some
+Open an R console in this directory and run the following command to see some
 of the features in use.
 
     source("example.r")
