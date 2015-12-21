@@ -121,7 +121,7 @@ phil$t_d_min <- wl$t_d_min <- vl$t_d_min<- t_dl$t_d_min <- t_d_min
 phil$w_max   <- wl$w_max   <- vl$w_max  <- t_dl$w_max   <- w_max
 phil$w_min   <- wl$w_min   <- vl$w_min  <- t_dl$w_min   <- w_min
 phil$p       <- wl$p       <- vl$p      <- t_dl$p       <- p
-obj <- c(phil,wl,vl,t_dl)
+obj <- list(phil = phil,wl = wl,vl = vl,t_dl = t_dl)
 class(obj) <- "psyplot"
 return(psyplot)
 }
