@@ -12,4 +12,3 @@ t_dew <- ifelse(t_dew<=0,6.09+12.608*alpha+0.4959*alpha^2,t_dew)
 t_dew <- ifelse(t_dew<93,t_dew,NA)
 return(t_dew)
 }
-

@@ -29,32 +29,32 @@ obj <- list(
 return(obj)
 }
 
-#Classes Decended From Psylines
+#Classes From Psylines
 philines <- function(nlines = 10, t_d_max = 50, t_d_min = 0, w_min =
 0, w_max = 30, nsteps = 101, p = 101.3e3){
 obj = psylines(nlines, t_d_max, t_d_min, w_min, w_max, nsteps, p)
-class(obj)<-"philines"
+class(obj)<-append("philines",class(obj))
 return(obj)
 }
 
 wlines <- function(nlines = 10, t_d_max = 50, t_d_min = 0, w_min =
 0, w_max = 30, nsteps = 101, p = 101.3e3){
 obj = psylines(nlines, t_d_max, t_d_min, w_min, w_max, nsteps, p)
-class(obj)<-"wlines"
+class(obj)<-append("wlines",class(obj))
 return(obj)
 }
 
 vlines <- function(nlines = 10, t_d_max = 50, t_d_min = 0, w_min =
 0, w_max = 30, nsteps = 101, p = 101.3e3){
 obj = psylines(nlines, t_d_max, t_d_min, w_min, w_max, nsteps, p)
-class(obj)<-"vlines"
+class(obj)<-append("vlines",class(obj))
 return(obj)
 }
 
 t_dlines <- function(nlines = 10, t_d_max = 50, t_d_min = 0, w_min =
 0, w_max = 30, nsteps = 101, p = 101.3e3){
 obj = psylines(nlines, t_d_max, t_d_min, w_min, w_max, nsteps, p)
-class(obj)<-"t_dlines"
+class(obj)<-append("t_dlines",class(obj))
 return(obj)
 }
 
@@ -73,102 +73,91 @@ set_t_d_list <- function(obj)UseMethod("set_t_d_list",obj)
 # Method to trim the lines to the bounds of the plot
 trim.psylines <- function(obj){
     obj$w_list <- ifelse(obj$w_list>obj$w_max|obj$W_list>humidityratio(t_d = 
-    obj$t_d_list,p = rep(obj$p,obj$n_steps),phi = rep(1,obj$n_steps)),NA,
+    obj$t_d_list,p = rep(obj$p,obj$nsteps),phi = rep(1,obj$nsteps)),
+    NA,
     obj$w_list)
 }
 
 trim <- function(obj) UseMethod("trim",obj)
 
 # set_list methods to set the lists for each type of line.
-set_list.psylines <- function(obj,x)
-set_list.philines <- function(obj,x){
+#<<TO DO:>> Finish adding steps to calculate x_min,x_max, x_list
+#set_list.psylines <- function(obj,x=NULL)
+
+set_list.philines <- function(obj,x=NULL){
     set_t_d_list(obj)
-    obj$w_lines = humidityratio(t_d = obj$t_d_list, p =
-	rep(obj$p,obj$n_steps),phi = rep(x,obj$n_steps))
+    obj$x_min = 0
+    obj$x_max = 1
+    obj$x_list = seq(obj$x_min,obj$x_max,(obj$x_max-obj$x_min)/(obj$nlines-1))
+    if(is.null(x)) x = obj$x_min
+    obj$w_list = humidityratio(t_d = obj$t_d_list, p =
+	rep(obj$p,obj$nsteps),phi = rep(x,obj$nsteps))
     trim(obj)
+    return(obj)
 }
-set_list.wlines <- function(obj,x){
+set_list.wlines <- function(obj,x=NULL){
+    obj$t_d_list = c(dewpoint(p = obj$p, W = obj$w_min),obj$t_d_max)
+    obj$x_min = obj$w_min
+    obj$x_max = obj$w_max
+    obj$x_list = seq(obj$x_min,obj$x_max,(obj$x_max-obj$x_min)/(obj$nlines-1))
+    if(is.null(x)) x = obj$x_min
+    obj$w_list = c(x,x)
+    return(obj)
+}
+set_list.vlines <- function(obj,x=NULL){
     set_t_d_list(obj)
-    obj$w_lines = humidityratio(t_d = obj$t_d_list, p =
-	rep(obj$p,obj$n_steps),w  = rep(x,obj$n_steps))
+    statemin = mas(W = obj$w_min,t_d = obj$t_d_min,p = obj$p)
+    statemax = mas(W = obj$w_max,t_d = obj$t_d_max,p = obj$p)
+    obj$x_min = statemin$v
+    obj$x_max = statemax$v
+    obj$x_list = seq(obj$x_min,obj$x_max,(obj$x_max-obj$x_min)/(obj$nlines-1))
+    if(is.null(x)) x = obj$x_min
+    obj$w_list = humidityratio(t_d=obj$t_d_list, p=rep(obj$p,obj$nsteps),
+    v=rep(x,obj$nsteps))
     trim(obj)
+    return(obj)
 }
-set_list.vlines <- function(obj,x){
-    set_t_d_list(obj)
-    obj$w_lines = humidityratio(t_d = obj$t_d_list, p =
-	rep(obj$p,obj$n_steps),v = rep(x,obj$n_steps))
-    trim(obj)
-}
+
 set_list.t_dlines <- function(obj,x){
 #Note: these lines are vertical so they need some special instructions below.
+#<<To Do>: Needs x_list steps
     obj$t_d_list = c(x,x)
     W_s = humidityratio(t_d = x,p = obj$p,phi = 1)
     if(w_phi>obj$w_max){
     obj$w_list = c(obj$w_min,obj$w_max)
     } else 
     obj$w_list = c(obj$w_min,w_s)
+    return(obj)
 }
 
-set_list <- function(obj) UseMethod("set_list",obj)
+set_list <- function(obj,x) UseMethod("set_list",obj)
+
+#Draw the lines for a psylines object
+draw.psylines <- function(obj){
+    obj$x_list <- seq(obj$x_min,obj$x_max,(obj$x_max-obj$x_min)/(obj$nlines-1))
+    for (i in obj$x_list){
+        set_list(obj)
+        lines(obj$t_d_list, psyline$w_list, type = "l")
+	}	
+}
+
+draw <- function(obj) UseMethod("draw",obj)
+
 
 #Function psyplot to create the psyplot class. Pass variables down to
 #psylines objects. Psyplot defines all data necessary to create a 
 #psychrometric plot.
-#<<TO DO:>> Function Not Currently Working.
-psyplot <- function(phil = philines(), wl = wlines(), vl = vlines(), t_dl = t_dlines(),main = "Psychrometric Plot", t_d_max = 50, t_d_min = 0, w_min = 0, w_max = 30, p = 101.3e3){
-phil$t_d_max <- wl$t_d_max <- vl$t_d_max<- t_dl$t_d_max <- t_d_max
-phil$t_d_min <- wl$t_d_min <- vl$t_d_min<- t_dl$t_d_min <- t_d_min
-phil$w_max   <- wl$w_max   <- vl$w_max  <- t_dl$w_max   <- w_max
-phil$w_min   <- wl$w_min   <- vl$w_min  <- t_dl$w_min   <- w_min
-phil$p       <- wl$p       <- vl$p      <- t_dl$p       <- p
-obj <- list(phil = phil,wl = wl,vl = vl,t_dl = t_dl)
-class(obj) <- "psyplot"
-return(psyplot)
+psyplot <- function(phil = philines(), wl = wlines(), vl = vlines(), 
+t_dl = t_dlines(),main = "Psychrometric Plot", t_d_max = 50, t_d_min = 0,
+w_min = 0, w_max = 30, p = 101.3e3){
+	phil$t_d_max <- wl$t_d_max <- vl$t_d_max<- t_dl$t_d_max <- t_d_max
+	phil$t_d_min <- wl$t_d_min <- vl$t_d_min<- t_dl$t_d_min <- t_d_min
+	phil$w_max   <- wl$w_max   <- vl$w_max  <- t_dl$w_max   <- w_max
+	phil$w_min   <- wl$w_min   <- vl$w_min  <- t_dl$w_min   <- w_min
+	phil$p       <- wl$p       <- vl$p      <- t_dl$p       <- p
+	obj <- list(phil = phil,wl = wl,vl = vl,t_dl = t_dl)
+	class(obj) <- "psyplot"
+	return(obj)
 }
-
-# Temporary Testing of Alogithems: To be refined into a consolidated 
-# class structure
-#psyline_chart1 = psylines(t_d_max = 50, t_d_min = 0, w_min = 0, w_max = 30)
-
-##Create New Plot
-#
-## Constant Relative Humidity Lines
-##<<TO DO>> Add Units in the plot labels.
-#
-#philine = psyline_chart1
-#philine$x_list  = seq(0.1,1,0.9/((philine$nlines-1)))
-#t_d_plot = philine$t_d_list
-#p_plot = rep(philine$p,philine$nsteps)
-#phi_plot =  rep(philine$x_list[philine$nlines],philine$nsteps)
-#
-#
-#philine$w_list = humidityratio(t_d = t_d_plot, p = p_plot,phi =phi_plot)*1000
-#plot(philine$t_d_list, philine$w_list, type = "l",
-#    xlim =c(psyline_chart1$t_d_min,psyline_chart1$t_d_max),
-#    ylim =c(psyline_chart1$w_min,psyline_chart1$w_max),
-#    axes = FALSE,
-#    ylab = '',
-#    xlab = "Dry Bulb Temperature",
-#    main = "Psychrometric Plot",
-#)
-#par(mar = c(5,5,5,5))
-#
-#axis(4)
-#axis(1)
-#mtext("Humidity Ratio",side = 4, line = 3)
-#
-#for (i in philine$x_list){
-#    phi_plot =  rep(i,philine$nsteps)
-#    philine$w_list = humidityratio(t_d = philine$t_d_list, 
-#	p = philine$p,phi = phi_plot)*1000
-#    lines(philine$t_d_list, philine$w_list, type = "l")
-#}
-
-
-
-
-
-
-
 
 

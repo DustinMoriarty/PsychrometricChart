@@ -26,79 +26,152 @@
 source("saturationpressure.r")
 source("humidityratio.r")
 source("dewpoint.r")
-
+source("tempwetbulb.r")
 
 #Constructor Function for MAS  
-mas <- function(arg1,arg2,arg3,mode=1,units="SI"){
+mas <- function(t_d = NULL, t_w = NULL, p = NULL, t_dew = NULL, 
+	T_d = NULL, phi = NULL, W = NULL,h=NULL,units="SI", description = "No Description"){
 
+# Unit Conversion
 if(units=="IM"){
     ##<<To Do>> add unit conversion
     stop("Imperial units not yet supported.")
     }
     else if(units!="SI"){
-	stop("Invalid value for units.")
-	}
+    stop("Invalid value for units.")
+    }
 
+#Cacluate t_d from T_d if necessary
+if(is.null(t_d)&is.numeric(T_d)) t_d = T_d - 273.15
 
 #Initiate Variables
-	R = 8314.472; #J/mol/K
-	x = list(
-		t_d = 1,
-		T_d = 1, 
-		T_w = 1,        
-		t_w = 1,        
-		p = 1,          
-		p_da = 1,       
-		p_ws = 1,       
-		W_ws = 1,       
-		W_s = 1,
-		W = 1,          
-		p_w = 1,        
-		gamma = 1,       
-		phi = 1,         
-		h = 1,           
-		description = "description", 
-		v = 1)
+    R = 8314.472; #J/mol/K
 
-# Switch between modes depending on input argument mode, mode determines the variables reprented
-# by the input argments arg1, arg2 and arg3
-switch(mode,
-#Mode 1:t_d, t_w, p
-{
-t_d <- arg1
-t_w <- arg2
-p <- arg3
-#Calculate State Variables
-	x$t_d = t_d
-	x$t_w = t_w
-	x$p = p
-	x$T_d = t_d + 273.15 #Dry Bulb Temperature (deg K)
-	x$T_w = t_w + 273.15 #Wet Bulb Temperature (deg K)
-	x$p_da = SaturationPressure(x$T_d) #Partial Pressure of Dry Air
-	x$p_ws = SaturationPressure(x$T_w);   #wet bulb pressure at saturation
-	x$W_ws = 0.621945*x$p_ws/(x$p-x$p_ws);    #Humidity Ratio at Saturation	
-	#Humidity Ratio
-	x$W <-ifelse(x$t_d<0, 
-		((2830 - 0.24*x$t_w)*x$W_ws -1.006*(x$t_d-x$t_w))/(2830 + 1.86*x$t_d-2.1*x$t_w), 
-		((2501 -2.326*x$t_w)*x$W_ws - 1.006*(x$t_d-x$t_w))/(2501+1.86*x$t_d-4.186*x$t_w))
-	x$W_s <- 0.621945*x$p_da/(x$p-x$p_da)
-	x$p_w = x$p*x$W/(0.621945 + x$W) #Partial Pressure of Water Vapor
-	x$gamma = x$W/(1+x$W) #Specific Humidity
-	x$phi = x$p_w/x$p_da  #Relative Humidity
-	x$h = 1.006*x$t_d+x$W*(2501+1.86*x$t_d) #Enthalpy
-	x$v = R*x$T_d*(1+1.607858*x$W)/28.966/x$p} #Specific Volume	
 
-,
-#Mode 2: t, t_d and p
-#<<<TO DO>>>: Implement ASHRAE Fundamentals Handbook 2009 Chapter 1 Situation 2
-message("mode not yet supported")
-,
-#Mode 3: t, phi and p
-#<<<TO DO>>>: Implement ASHRAE Fundamentals Handbook 2009 Chapter 1 Situation 3 
-message("mode not yet supported")
-)
+if(is.numeric(t_d)&is.numeric(t_w)&is.numeric(p)&is.null(t_dew)
+    &is.null(phi)&is.null(W)&is.null(h)){
+    #Situation 1: t_d, t_w, p
+    #Calculate State Variables
+    T_d = t_d + 273.15 #Dry Bulb Temperature (deg K)
+    T_w = t_w + 273.15 #Wet Bulb Temperature (deg K)
+    p_da = SaturationPressure(T_d) #Partial Pressure of Dry Air
+    p_ws = SaturationPressure(T_w)   #wet bulb pressure at saturation
+    W_ws = 0.621945*p_ws/(p-p_ws)    #Humidity Ratio at Saturation	
+    #Humidity Ratio
+    W = humidityratio(t_d = t_d, p = p, t_w = t_w)     
+    W_s = 0.621945*p_da/(p-p_da)
+    p_w = p*W/(0.621945 + W) #Partial Pressure of Water Vapor
+    gamma = W/(1+W) #Specific Humidity
+    phi = p_w/p_da  #Relative Humidity
+    h = 1.006*t_d+W*(2501+1.86*t_d) #Enthalpy
+    v = R*T_d*(1+1.607858*W)/28.966/p #Specific Volume	
+    t_dew = dewpoint(W=W,p=p) #Dewpoint Temperature (deg C) 
+    T_dew = t_dew +273.15 #Dewpoint Temperature (deg K)
 
+}
+else if(is.numeric(t_d)&is.null(t_w)&is.numeric(p)&is.numeric(t_dew)&
+    is.null(phi)&is.null(W)&is.null(h)){
+    # Situation 2:  t_d, t_dew and p
+    T_d = t_d + 273.15 #Dry Bulb Temperature (deg K)
+    T_dew = t_dew+273.15 #Dew Point Temperature (deg K)
+    p_w = SaturationPressure(T_dew)
+	W = 0.621945*p_w/(p-p_w)
+    p_da = SaturationPressure(T_d) #Partial Pressure of Dry Air
+    W_s <- 0.621945*p_da/(p-p_da)
+    gamma = W/(1+W) #Specific Humidity
+    phi = p_w/p_da  #Relative Humidity
+    h = 1.006*t_d+W*(2501+1.86*t_d) #Enthalpy
+    v = R*T_d*(1+1.607858*W)/28.966/p #Specific Volume	
+    t_w = tempwetbulb(t_d=t_d,p=p,W=W) #Wet Bulb Temp (deg C)
+    T_w = t_w + 273.15 #Wet Bulb Temp (deg K)
+}
+else if(is.numeric(t_d)&is.null(t_w)&is.numeric(p)&is.null(t_dew)&
+    is.numeric(phi)&is.null(W)&is.null(h)){
+    # Situation 3:  t_d, phi and p
+    T_d = t_d + 273.15 #Dry Bulb Temperature (deg K)
+    T_w = t_w + 273.15 #Wet Bulb Temperature (deg K)
+    p_da = SaturationPressure(T_d) #Partial Pressure of Dry Air
+    p_w = phi*p_da
+    W = humidityratio(t_d = t_d, p = p, phi=phi)
+    W_s <- 0.621945*p_da/(p-p_da)
+    gamma = W/(1+W) #Specific Humidity
+    phi = p_w/p_da  #Relative Humidity
+    h = 1.006*t_d+W*(2501+1.86*t_d) #Enthalpy
+    v = R*T_d*(1+1.607858*W)/28.966/p #Specific Volume	
+    t_w = tempwetbulb(t_d=t_d,p=p,W=W) #Wet Bulb Temp (deg C)
+    T_w = t_w + 273.15 #Wet Bulb Temp (deg K)
+    t_dew = dewpoint(W=W,p=p) #Dewpoint Temperature (deg C) 
+    T_dew = t_dew +273.15 #Dewpoint Temperature (deg K)
+}
+else if(is.numeric(t_d)&is.null(t_w)&is.numeric(p)&is.null(t_dew)&
+    is.null(phi)&is.numeric(W)&is.null(h)){
+    # t_d, W  and p
+    t_dew = dewpoint(W=W,p=p) #Dewpoint Temperature (deg C) 
+    T_dew = t_dew +273.15 #Dewpoint Temperature (deg K)
+    T_d = t_d + 273.15 #Dry Bulb Temperature (deg K)
+    p_w = SaturationPressure(T_dew)
+    p_da = SaturationPressure(T_d) #Partial Pressure of Dry Air
+    W_s <- 0.621945*p_da/(p-p_da)
+    gamma = W/(1+W) #Specific Humidity
+    phi = p_w/p_da  #Relative Humidity
+    h = 1.006*t_d+W*(2501+1.86*t_d) #Enthalpy
+    v = R*T_d*(1+1.607858*W)/28.966/p #Specific Volume	
+    t_w = tempwetbulb(t_d=t_d,p=p,W=W) #Wet Bulb Temp (deg C)
+    T_w = t_w + 273.15 #Wet Bulb Temp (deg K)
+}
+else if(is.numeric(t_d)&is.null(t_w)&is.numeric(p)&is.null(t_dew)&
+    is.null(phi)&is.null(W)&is.numeric(h)){
+    # t_d, h  and p
+    W = humidityratio(t_d = t_d, h = h) #Humidity Ratio
+    t_dew = dewpoint(W=W,p=p) #Dewpoint Temperature (deg C) 
+    T_dew = t_dew +273.15 #Dewpoint Temperature (deg K)
+    T_d = t_d + 273.15 #Dry Bulb Temperature (deg K)
+    p_w = SaturationPressure(T_dew)
+    p_da = SaturationPressure(T_d) #Partial Pressure of Dry Air
+    W_s <- 0.621945*p_da/(p-p_da)
+    gamma = W/(1+W) #Specific Humidity
+    phi = p_w/p_da  #Relative Humidity
+    v = R*T_d*(1+1.607858*W)/28.966/p #Specific Volume	
+    t_w = tempwetbulb(t_d=t_d,p=p,W=W) #Wet Bulb Temp (deg C)
+    T_w = t_w + 273.15 #Wet Bulb Temp (deg K)
+}
+else if(is.null(t_d)&is.null(t_w)&is.numeric(p)&is.null(t_dew)&
+    is.null(phi)&is.numeric(W)&is.numeric(h)){
+    # W, h  and p
+    t_d = (h-2501*W)/(1.006+1.86*W)
+    t_dew = dewpoint(W=W,p=p) #Dewpoint Temperature (deg C) 
+    T_dew = t_dew +273.15 #Dewpoint Temperature (deg K)
+    T_d = t_d + 273.15 #Dry Bulb Temperature (deg K)
+    p_w = SaturationPressure(T_dew)
+    p_da = SaturationPressure(T_d) #Partial Pressure of Dry Air
+    W_s <- 0.621945*p_da/(p-p_da)
+    gamma = W/(1+W) #Specific Humidity
+    phi = p_w/p_da  #Relative Humidity
+    v = R*T_d*(1+1.607858*W)/28.966/p #Specific Volume	
+    t_w = tempwetbulb(t_d=t_d,p=p,W=W) #Wet Bulb Temp (deg C)
+    T_w = t_w + 273.15 #Wet Bulb Temp (deg K)
+}
+else stop("Too many, too few or wrong type of arguments.")
+
+x = list(
+	t_d         = t_d        ,
+	T_d         = T_d        ,
+	t_w         = t_w        ,
+	T_w         = T_w        ,
+    t_dew       = t_dew      ,
+    T_dew       = T_dew      ,
+	p           = p          ,
+	p_w         = p_w        ,
+	W           = W          ,
+	W_s         = W_s        ,
+    gamma       = gamma      ,
+	phi         = phi        ,
+	h           = h          ,
+	v           = v          ,          
+	description = description
+    )
 class(x) <- "mas"
+	
 return(x)
 }
 

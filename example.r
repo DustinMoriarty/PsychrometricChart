@@ -8,10 +8,10 @@ source("mas.r")
 patm = 101.1e3 #Pa
 
 #State Variables as Single Points
-A = mas(21.9,8.9,patm) 
-B = mas(29.6,11.3,patm)
-C = mas(15.3,5.6,patm)
-D = mas(21.2,8.6,patm)
+A = mas(t_d=21.9,t_w=8.9 ,p=patm) 
+B = mas(t_d=29.6,t_w=11.3,p=patm)
+C = mas(t_d=15.3,t_w=5.6 ,p=patm)
+D = mas(t_d=21.2,t_w=8.6 ,p=patm)
 
 print("scalar use of mas")
 print("A$W =")
@@ -27,7 +27,7 @@ print(D$W)
 #State Variables as Vectors
 t_d = c(21.9,29.6,15.3,21.2)
 t_w = c(8.9, 11.3, 5.6, 8.6)
-cycle = mas(t_d, t_w, patm)
+cycle = mas(t_d=t_d, t_w=t_w, p=patm)
 
 print("use with vectors")
 print("t_d = ")
@@ -37,3 +37,4 @@ print(cycle$W)
 
 
 source("psyplot.r")
+
