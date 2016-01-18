@@ -37,4 +37,4 @@ print(cycle$W)
 
 
 source("psyplot.r")
-
+plot.psyplot(psyplot())
