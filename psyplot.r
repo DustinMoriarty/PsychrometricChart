@@ -47,9 +47,17 @@ wlines <- function(nlines = 10, t_d_max = 50, t_d_min = 0,
 }
 
 vlines <- function(nlines = 10, t_d_max = 50, t_d_min = 0, w_min =
-    0, w_max = 30, nsteps = 1001, p = 101.3e3){
+    0, w_max = 30/1000, nsteps = 1001, p = 101.3e3){
     obj = psylines(nlines, t_d_max, t_d_min, w_min, w_max, nsteps, p)
     class(obj)<-append("vlines",class(obj))
+    return(obj)
+}
+
+
+hlines <- function(nlines = 10, t_d_max = 50, t_d_min = 0, w_min =
+    0, w_max = 30/1000, nsteps = 1001, p = 101.3e3){
+    obj = psylines(nlines, t_d_max, t_d_min, w_min, w_max, nsteps, p)
+    class(obj)<-append("hlines",class(obj))
     return(obj)
 }
 
@@ -67,6 +75,7 @@ set_t_d_list.psylines <- function(obj){
         # Create a list of dry bulb temperatures for the x-axis
         obj$t_d_list = seq(obj$t_d_min,obj$t_d_max,(obj$t_d_max-obj$t_d_min)/
             (obj$nsteps-1))
+    return(obj)
     }
 }
 
@@ -91,7 +100,7 @@ trim <- function(obj) UseMethod("trim",obj)
 #set_list.psylines <- function(obj,x=NULL)
 
 set_list.philines <- function(obj,x=NULL){
-    set_t_d_list(obj)
+    obj = set_t_d_list(obj)
     obj$x_min = 0
     obj$x_max = 1
     obj$x_list = seq(obj$x_min,obj$x_max,(obj$x_max-obj$x_min)/(obj$nlines-1))
@@ -114,7 +123,7 @@ set_list.wlines <- function(obj,x=NULL){
 }
 
 set_list.vlines <- function(obj,x=NULL){
-    set_t_d_list(obj)
+    obj = set_t_d_list(obj)
     statemin = mas(W = obj$w_min,t_d = obj$t_d_min,p = obj$p)
     statemax = mas(W = obj$w_max,t_d = obj$t_d_max,p = obj$p)
     obj$x_min = statemin$v
@@ -142,6 +151,19 @@ set_list.t_dlines <- function(obj,x=NULL){
         obj$w_list
     )
     return(obj)
+}   
+
+set_list.hlines <- function(obj,x=NULL){
+    obj = set_t_d_list(obj)
+    statemin = mas(W = obj$w_min,t_d = obj$t_d_min,p = obj$p)
+    statemax = mas(W = obj$w_max,t_d = obj$t_d_max,p = obj$p)
+    obj$x_min = statemin$h
+    obj$x_max = statemax$h
+    obj$x_list = seq(obj$x_min,obj$x_max,(obj$x_max-obj$x_min)/(obj$nlines-1))
+    if(is.null(x)) x = obj$x_min
+    obj$w_list = humidityratio(t_d=obj$t_d_list, h=rep(x,obj$nsteps))
+    obj=trim(obj)
+    return(obj)
 }
 
 set_list <- function(obj,x) UseMethod("set_list",obj)
@@ -162,24 +184,26 @@ draw <- function(obj) UseMethod("draw",obj)
 #psylines objects. Psyplot defines all data necessary to create a 
 #psychrometric plot.
 psyplot <- function(phil = NULL, wl = NULL, 
-    vl = NULL, t_dl = NULL,main = "Psychrometric Plot", 
+    vl = NULL, t_dl = NULL, hl = NULL, main = "Psychrometric Plot", 
     t_d_max = 50, t_d_min = 0, w_min = 0, w_max = 30/1000, p = 101.3e3){
      
     if(is.null(phil    )) phil = philines()
     if(is.null(wl      )) wl   = wlines()  
     if(is.null(vl      )) vl   = vlines()  
     if(is.null(t_dl    )) t_dl = t_dlines()
+    if(is.null(hl      )) hl   = hlines()
 
-	phil$t_d_max <- wl$t_d_max <- vl$t_d_max<- t_dl$t_d_max <- t_d_max
-	phil$t_d_min <- wl$t_d_min <- vl$t_d_min<- t_dl$t_d_min <- t_d_min
-	phil$w_max   <- wl$w_max   <- vl$w_max  <- t_dl$w_max   <- w_max
-	phil$w_min   <- wl$w_min   <- vl$w_min  <- t_dl$w_min   <- w_min
-    phil$p       <- wl$p       <- vl$p      <- t_dl$p       <- p
+	phil$t_d_max <- wl$t_d_max <- vl$t_d_max<- t_dl$t_d_max <-hl$t_d_max <- t_d_max
+	phil$t_d_min <- wl$t_d_min <- vl$t_d_min<- t_dl$t_d_min <-hl$t_d_min <- t_d_min
+	phil$w_max   <- wl$w_max   <- vl$w_max  <- t_dl$w_max   <-hl$w_max   <- w_max
+	phil$w_min   <- wl$w_min   <- vl$w_min  <- t_dl$w_min   <-hl$w_min   <- w_min
+    phil$p       <- wl$p       <- vl$p      <- t_dl$p       <-hl$p       <- p
 	obj <- list(
         phil = phil,
         wl = wl,
         vl = vl,
         t_dl = t_dl,
+        hl = hl,
         main = main,
         t_d_max = t_d_max,
         t_d_min = t_d_min,
@@ -203,4 +227,5 @@ plot.psyplot <- function(obj){
     draw(obj$wl)
     draw(obj$vl)
     draw(obj$t_dl)
+    draw(obj$hl)
 }
